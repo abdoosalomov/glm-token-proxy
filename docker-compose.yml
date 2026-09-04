@@ -1,0 +1,37 @@
+services:
+    glm-proxy:
+        build: .
+        container_name: glm-proxy
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            - PORT=8787
+            - HOST=0.0.0.0
+            - NODE_EXTRA_CA_CERTS=/app/fortinet-ca.pem
+        volumes:
+            - ./fortinet-ca.pem:/app/fortinet-ca.pem
+        ports:
+            - "127.0.0.1:8787:8787"
+        healthcheck:
+            test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+
+    ccr:
+        image: musistudio/claude-code-router:latest
+        container_name: ccr
+        restart: unless-stopped
+        depends_on:
+            glm-proxy:
+                condition: service_healthy
+        ports:
+            - "127.0.0.1:3458:8080"
+        environment:
+            - CCR_PUBLIC_BASE_URL=http://127.0.0.1:3458
+            - CCR_WEB_AUTH_TOKEN=${CCR_WEB_AUTH_TOKEN:?set CCR_WEB_AUTH_TOKEN in .env}
+        volumes:
+            - ccr-data:/data
+
+volumes:
+    ccr-data:
