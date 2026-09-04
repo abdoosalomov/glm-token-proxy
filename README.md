@@ -1,13 +1,13 @@
 # glm-token-proxy
 
-Local proxy between [claude-code-router](https://github.com/musistudio/claude-code-router) (CCR) and a GLM API that uses OAuth `client_credentials` with short-lived tokens (1800s).
+Local proxy that sits between any OpenAI-format client and a GLM API that uses OAuth `client_credentials` with short-lived tokens (1800s).
 
-**Problem:** CCR only accepts a static API key. The GLM token expires every 30 minutes.
+**Problem:** the GLM API has no static API key — the OAuth token expires every 30 minutes.
 
-**Solution:** this proxy owns the token — fetches it, caches it, refreshes it 300s before expiry, retries once on 401 — and forwards requests to the GLM chat completions endpoint with a fresh `Bearer` header. CCR just talks to `localhost` with a dummy key.
+**Solution:** this proxy owns the token — fetches it, caches it, refreshes it 300s before expiry, retries once on 401 — and forwards requests to the GLM chat completions endpoint with a fresh `Bearer` header. Clients just talk to `localhost` with any static key.
 
 ```
-Claude Code → CCR (Anthropic→OpenAI format) → glm-token-proxy (auth) → GLM API
+Your client (OpenAI format) → glm-token-proxy (auth) → GLM API
 ```
 
 Zero npm dependencies. Node 18+.
@@ -29,34 +29,13 @@ glm-token-proxy listening on http://127.0.0.1:8787
 
 Health check: `curl http://127.0.0.1:8787` shows token cache status.
 
-## Wire up claude-code-router
-
-`~/.claude-code-router/config.json`:
-
-```json
-{
-  "Providers": [
-    {
-      "name": "glm",
-      "api_base_url": "http://127.0.0.1:8787/v1/chat/completions",
-      "api_key": "dummy",
-      "models": ["zai-org/GLM-5.3-Flash"]
-    }
-  ],
-  "Router": {
-    "default": "glm,zai-org/GLM-5.3-Flash"
-  }
-}
-```
-
-Then:
+Or with Docker:
 
 ```bash
-ccr restart
-ccr code   # launches Claude Code routed through GLM
+docker compose up -d
 ```
 
-**Important:** only launch GLM sessions with `ccr code`. Do not put `ANTHROPIC_BASE_URL` or related overrides into `~/.claude/settings.json` or shell profiles — that hijacks every Claude client globally. Plain `claude` should keep using your normal Anthropic account.
+> If your network does HTTPS inspection (e.g. FortiGate), drop the firewall's root CA cert next to the Dockerfile and mount it via `NODE_EXTRA_CA_CERTS` (already wired in `docker-compose.yml`).
 
 ## Token response format
 

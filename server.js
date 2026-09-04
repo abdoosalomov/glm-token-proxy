@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * glm-token-proxy
- * Sits between claude-code-router (or any OpenAI-format client) and the GLM API.
+ * Sits between any OpenAI-format client and the GLM API.
  * Owns the OAuth client_credentials token, refreshes it before the 1800s expiry,
  * and injects a fresh Bearer header on every forwarded request.
  *

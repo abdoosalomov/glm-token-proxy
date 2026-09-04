@@ -1,7 +1,7 @@
 {
   "name": "glm-token-proxy",
   "version": "1.0.0",
-  "description": "Local proxy that handles OAuth client_credentials token refresh for the GLM API, so clients like claude-code-router can use a static dummy key.",
+  "description": "Local proxy that handles OAuth client_credentials token refresh for the GLM API, so any OpenAI-format client can use a static key.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

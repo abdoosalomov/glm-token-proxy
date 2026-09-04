@@ -17,21 +17,3 @@ services:
             interval: 30s
             timeout: 5s
             retries: 3
-
-    ccr:
-        image: musistudio/claude-code-router:latest
-        container_name: ccr
-        restart: unless-stopped
-        depends_on:
-            glm-proxy:
-                condition: service_healthy
-        ports:
-            - "127.0.0.1:3458:8080"
-        environment:
-            - CCR_PUBLIC_BASE_URL=http://127.0.0.1:3458
-            - CCR_WEB_AUTH_TOKEN=${CCR_WEB_AUTH_TOKEN:?set CCR_WEB_AUTH_TOKEN in .env}
-        volumes:
-            - ccr-data:/data
-
-volumes:
-    ccr-data:
